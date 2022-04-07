@@ -1,0 +1,139 @@
+﻿@page "/baseball-board-admin/{Id:guid}"
+@using System.Timers
+@inject NavigationManager navigationManager
+@inject GameHttpClient gameHttpClient
+
+<div class="row">
+    <div>
+        <button class="btn btn-primary" @onclick="GoHome">Dashboard</button>
+        <button class="btn btn-outline-danger" @onclick="@(() => EditGame(game.Id))">Edit Game Details</button>
+    </div>
+    <div class="col text-center">
+        <h3>GameBoard - Admin</h3>
+    </div>
+</div>
+
+<hr />
+
+@if (game == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="scoreboard">
+        <div class="title">@game.GameTitle</div>
+        <div class="home-info">
+            <div class="team-text">@game.HomeTeamName</div>
+            <div class="score-text">@game.HomeTeamScore</div>
+            <button class="btn btn-primary" @onclick="increaseHomeScore">+</button>
+            <button class="btn btn-primary" @onclick="decreaseHomeScore">-</button>
+        </div>
+        <div class="game-info">
+            <div class="info-text">
+                <div>@game.InningHalf</div>
+                <div>@game.InningNum</div>
+                <button class="btn btn-primary" @onclick="increaseInning">+</button>
+                <button class="btn btn-primary" @onclick="decreaseInning">-</button>
+            </div>
+        </div>
+        <div class="visitor-info">
+            <div class="team-text">@game.GuestTeamName</div>
+            <div class="score-text">@game.GuestTeamScore</div>
+            <button class="btn btn-primary" @onclick="increaseGuestScore">+</button>
+            <button class="btn btn-primary" @onclick="decreaseGuestScore">-</button>
+        </div>
+    </div>
+
+}
+
+@code {
+
+    [Parameter]
+    public Guid Id { get; set; }
+    public BaseballModel game { get; set; }
+    HubConnection hubConnection;
+    public TimeSpan timeLeft = new TimeSpan();
+    public Timer timer { get; set; }
+    public string clockLabel { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        game = await gameHttpClient.GetGame(Id);
+
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(navigationManager.ToAbsoluteUri("/scorehub"))
+        .Build();
+
+        await hubConnection.StartAsync();
+    }
+
+    public void increaseHomeScore()
+    {
+        game.HomeTeamScore++;
+        updateGame();
+    }
+
+    public void decreaseHomeScore()
+    {
+        game.HomeTeamScore--;
+        updateGame();
+    }
+
+    public void increaseGuestScore()
+    {
+        game.GuestTeamScore++;
+        updateGame();
+    }
+
+    public void decreaseGuestScore()
+    {
+        game.GuestTeamScore--;
+        updateGame();
+    }
+
+    public void increaseInning()
+    {
+        if (game.InningHalf == "Bot")
+        {
+            game.InningHalf = "Top";
+            game.InningNum++;
+        }
+        else if(game.InningHalf == "Top")
+        {
+            game.InningHalf = "Bot";
+        }
+
+        updateGame();
+    }
+
+    public void decreaseInning()
+    {
+        if (game.InningHalf == "Bot")
+        {
+            game.InningHalf = "Top";
+        }
+        else if (game.InningHalf == "Top")
+        {
+            game.InningHalf = "Bot";
+            game.InningNum--;
+        }
+        updateGame();
+    }
+
+    public async void updateGame()
+    {
+        await gameHttpClient.UpdateGame(game);
+    }
+
+    private void GoHome()
+    {
+        navigationManager.NavigateTo("/");
+    }
+
+    public void EditGame(Guid gameId)
+    {
+        navigationManager.NavigateTo($"edit-game/{gameId}");
+    }
+
+}

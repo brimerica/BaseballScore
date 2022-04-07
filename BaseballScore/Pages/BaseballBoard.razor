@@ -1,0 +1,111 @@
+﻿@page "/baseball-board/{Id:guid}"
+@inject NavigationManager navigationManager
+@inject GameHttpClient gameHttpClient
+
+<div class="row">
+    <div>
+        <button class="btn btn-primary" @onclick="GoHome">Dashboard</button>
+    </div>
+    <div class="col text-center">
+        <h3>Baseball Scoreboard</h3>
+    </div>
+</div>
+
+<hr />
+
+@if (game == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="scoreboard">
+        <div class="title">@game.GameTitle</div>
+        <div class="home-info">
+            <div class="team-text">@game.HomeTeamName</div>
+            <div class="score-text">@game.HomeTeamScore</div>
+            <div class="team-info">
+                @*<div class="fouls info-text">
+                    <div>Fouls</div>
+                    <div>@game.HomeFouls</div>
+                </div>
+                <div class="timeout info-text">
+                    <div>Timeouts</div>
+                    <div>@game.HomeTimeout</div>
+                </div>*@
+            </div>
+        </div>
+        <div class="game-info">
+            <div class="title">
+                <div>@game.InningHalf</div>
+                <div>@game.InningNum</div>
+            </div>
+        </div>
+        <div class="visitor-info">
+            <div class="team-text">@game.GuestTeamName</div>
+            <div class="score-text">@game.GuestTeamScore</div>
+            <div class="team-info">
+                @*<div class="fouls info-text">
+                    <div>Fouls</div>
+                    <div>@game.GuestFouls</div>
+                </div>
+                <div class="timeout info-text">
+                    <div>Timeouts</div>
+                    <div>@game.GuestTimeout</div>
+                </div>*@
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public Guid Id { get; set; }
+    private BaseballModel game { get; set; }
+    private HubConnection hubConnection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        game = await gameHttpClient.GetGame(Id);
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(navigationManager.ToAbsoluteUri("/scorehub"))
+            .Build();
+
+        hubConnection.On<BaseballModel>("GameUpdated", updatedGame =>
+        {
+            if (game.Id == updatedGame.Id)
+            {
+                game.HomeTeamScore = updatedGame.HomeTeamScore;
+                game.GuestTeamScore = updatedGame.GuestTeamScore;
+                game.InningHalf = updatedGame.InningHalf;
+                game.InningNum = updatedGame.InningNum;
+                game.Outs = updatedGame.Outs;
+                game.Strikes = updatedGame.Strikes;
+                game.Balls = updatedGame.Balls;
+            }
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    public void Dispose()
+    {
+        hubConnection.Remove("GameUpdated");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    private void GoHome()
+    {
+        navigationManager.NavigateTo("/");
+    }
+}

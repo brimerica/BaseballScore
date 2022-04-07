@@ -1,16 +1,1 @@
-[
-  {
-    "Id": "652d4b29-469a-40e4-87f5-f7feda88c0d7",
-    "GameTitle": "Test Title",
-    "HomeTeamName": "Home Team",
-    "GuestTeamName": "Guest Team",
-    "HomeTeamScore": 4,
-    "GuestTeamScore": 1,
-    "InningNum": 1,
-    "InningHalf": "Top",
-    "Outs": 0,
-    "Strikes": 0,
-    "Balls": 0,
-    "Status": "In Progress"
-  }
-]
+[{"Id":"652d4b29-469a-40e4-87f5-f7feda88c0d7","GameTitle":"Test Title","HomeTeamName":"Home Team","GuestTeamName":"Guest Team","HomeTeamScore":4,"GuestTeamScore":1,"InningNum":3,"InningHalf":"Bot","Outs":0,"Strikes":0,"Balls":0,"Status":"In Progress"}]
