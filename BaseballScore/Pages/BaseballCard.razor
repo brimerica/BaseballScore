@@ -1,0 +1,20 @@
+﻿<h3 class="card-title font-weight-bolder">@Game.GameTitle </h3>
+<div class="row justify-content-center">
+    <div class="col">
+        <h5>@Game.HomeTeamName</h5>
+        <h5>@Game.HomeTeamScore</h5>
+    </div>
+    <div class="col text-center">
+        <div class="time-text-card">@Game.InningHalf</div>
+        <div class="time-text-card">@Game.InningNum</div>
+    </div>
+    <div class="col">
+        <h5>@Game.GuestTeamName</h5>
+        <h5>@Game.GuestTeamScore</h5>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public BaseballModel Game { get; set; }
+}

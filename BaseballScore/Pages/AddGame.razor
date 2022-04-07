@@ -1,0 +1,88 @@
+﻿@page "/add-game"
+@using Microsoft.Extensions.Logging
+@using BaseballScore.Models
+@inject NavigationManager navigationManager
+@inject ILogger<AddGame> Logger
+@inject GameHttpClient gameHttpClient
+@*@implements IAsyncDisposable*@
+
+<div class="row">
+    <div>
+        <button class="btn btn-primary" @onclick="GoHome">Dashboard</button>
+    </div>
+    <div class="col text-center">
+        <h3>Add Game</h3>
+    </div>
+</div>
+
+<hr />
+
+<div class="form-group">
+    <label>
+        Home Team Name:
+        <input @bind="addGame.HomeTeamName" />
+    </label>
+</div>
+<div class="form-group">
+    <label>
+        Guest Team Name:
+        <input @bind="addGame.GuestTeamName" />
+    </label>
+</div>
+<div class="form-group">
+    <label>
+        Game Title:
+        <input placeholder="@addGame.HomeTeamName vs @addGame.GuestTeamName" @bind="addGame.GameTitle" />
+    </label>
+</div>
+<div class="form-group">
+    <label>
+        Final Inning:
+        <input @bind="addGame.FinalInning" />
+    </label>
+</div>
+
+<div class="row">
+    <button type="submit" @onclick="OnSubmit" class="btn btn-primary">Add Game</button>
+    <button type="button" @onclick="GoHome" class="btn btn-light">Cancel</button>
+</div>
+
+@code {
+    //private HubConnection hubConnection;
+    private AddBaseballModel addGame = new AddBaseballModel();
+
+    private async Task OnSubmit()
+    {
+        try
+        {
+            var response = await gameHttpClient.AddGame(addGame);
+            if (response.IsSuccessStatusCode)
+            {
+                navigationManager.NavigateTo("");
+            }
+            else
+            {
+                // TODO! check if received a Bad status request
+                // and if so, show the errors returned from the server in the alert box
+                // See: https://docs.microsoft.com/en-us/aspnet/core/blazor/forms-validation?view=aspnetcore-5.0#server-validation
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Error: {Message}", ex.Message);
+        }
+
+    }
+
+
+    private void GoHome()
+    {
+        navigationManager.NavigateTo("/");
+    }
+
+
+
+    //public bool IsConnected =>
+    //    hubConnection.State == HubConnectionState.Connected;
+
+}
